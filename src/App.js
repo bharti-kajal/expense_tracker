@@ -20,8 +20,10 @@ const reducer = (state, action) => {
     //add logic for updating the expense here
     case "UPDATE_EXPENSE": {
       return {
-        expence: [payload.expense, ...state.expense]
-      }
+        expenses: state.expenses.map((expense) =>
+          expense.id === payload.expense.id ? payload.expense : expense
+        )
+      };
     }
     default:
       return state;
@@ -30,29 +32,40 @@ const reducer = (state, action) => {
 // Use proper state management for populating the form in the expenseForm component on clicking the edit icon in the Transaction component
 function App() {
   const [state, dispatch] = useReducer(reducer, { expenses: [] });
+  const [editingExpense, setEditingExpense] = useState(null); // state for editing
 
   const addExpense = (expense) => {
-    dispatch({ type: "ADD_EXPENSE", payload: { expense } });
+    if (editingExpense) {
+      dispatch({ type: "UPDATE_EXPENSE", payload: { expense } });
+      setEditingExpense(null);
+    } else {
+      dispatch({ type: "ADD_EXPENSE", payload: { expense } });
+      setEditingExpense(null);
+    }
   };
 
   const deleteExpense = (id) => {
     dispatch({ type: "REMOVE_EXPENSE", payload: { id } });
   };
-  // Add dispatch function for updation
+
+  const editExpense = (expense) => {
+    setEditingExpense(expense); // set the expense to be edited
+  };
+
   return (
     <>
       <h2 className="mainHeading">Expense Tracker</h2>
       <div className="App">
         <ExpenseForm 
-        addExpense={addExpense} 
-        // Pass the props for populating the form with expense text and amount
+          addExpense={addExpense} 
+          editingExpense={editingExpense} // pass the expense being edited
         />
         <div className="expenseContainer">
           <ExpenseInfo expenses={state.expenses} />
           <ExpenseList
             expenses={state.expenses}
             deleteExpense={deleteExpense}
-            // Pass props to update a transacation
+            editExpense={editExpense} // pass editExpense function
           />
         </div>
       </div>

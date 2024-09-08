@@ -1,12 +1,19 @@
 import React, { useEffect, useRef } from "react";
 import styles from "./ExpenseForm.module.css";
 
-const ExpenseForm = ({ addExpense }) => {
+const ExpenseForm = ({ addExpense, editingExpense }) => {
   const expenseTextInput = useRef();
   const expenseAmountInput = useRef();
 
-  // Use the useEffect hook here, to check if an expense is to be updated
-  // If yes, the autofill the form values with the text and amount of the expense
+  useEffect(() => {
+    if (editingExpense) {
+      // Autofill form with the expense data when editing
+      expenseTextInput.current.value = editingExpense.text;
+      expenseAmountInput.current.value = editingExpense.amount;
+    } else {
+      clearInput(); // Clear form when not editing
+    }
+  }, [editingExpense]);
 
   const onSubmitHandler = (e) => {
     e.preventDefault();
@@ -19,13 +26,10 @@ const ExpenseForm = ({ addExpense }) => {
     const expense = {
       text: expenseText,
       amount: expenseAmount,
-      id: new Date().getTime()
+      id: editingExpense ? editingExpense.id : new Date().getTime(), // Use existing ID for update
     };
     addExpense(expense);
     clearInput();
-    return;
-
-    // Logic to update expense here
   };
 
   const clearInput = () => {
@@ -35,8 +39,7 @@ const ExpenseForm = ({ addExpense }) => {
 
   return (
     <form className={styles.form} onSubmit={onSubmitHandler}>
-      {/* Change text to Edit Transaction if an expense is to be updated */}
-      <h3>Add new transaction</h3>
+      <h3>{editingExpense ? "Edit Transaction" : "Add new transaction"}</h3>
       <label htmlFor="expenseText">Text</label>
       <input
         id="expenseText"
@@ -48,7 +51,7 @@ const ExpenseForm = ({ addExpense }) => {
       />
       <div>
         <label htmlFor="expenseAmount">Amount</label>
-        <div>(negative - expense,positive-income)</div>
+        <div>(negative - expense, positive - income)</div>
       </div>
       <input
         className={styles.input}
@@ -59,8 +62,7 @@ const ExpenseForm = ({ addExpense }) => {
         required
       />
       <button className={styles.submitBtn}>
-        {/* Change text to Edit Transaction if an expense is to be updated */}
-        Add Transaction
+        {editingExpense ? "Edit Transaction" : "Add Transaction"}
       </button>
     </form>
   );
