@@ -1,19 +1,20 @@
 import React, { useEffect, useRef } from "react";
 import styles from "./ExpenseForm.module.css";
 
-const ExpenseForm = ({ addExpense, editingExpense }) => {
+const ExpenseForm = ({
+  addExpense,
+  expenseToUpdate,
+  updateExpense,
+  resetExpenseToUpdate
+}) => {
   const expenseTextInput = useRef();
   const expenseAmountInput = useRef();
 
   useEffect(() => {
-    if (editingExpense) {
-      // Autofill form with the expense data when editing
-      expenseTextInput.current.value = editingExpense.text;
-      expenseAmountInput.current.value = editingExpense.amount;
-    } else {
-      clearInput(); // Clear form when not editing
-    }
-  }, [editingExpense]);
+    if (!expenseToUpdate) return;
+    expenseTextInput.current.value = expenseToUpdate.text;
+    expenseAmountInput.current.value = expenseToUpdate.amount;
+  }, [expenseToUpdate]);
 
   const onSubmitHandler = (e) => {
     e.preventDefault();
@@ -22,14 +23,26 @@ const ExpenseForm = ({ addExpense, editingExpense }) => {
     if (parseInt(expenseAmount) === 0) {
       return;
     }
+    if (!expenseToUpdate) {
+      const expense = {
+        text: expenseText,
+        amount: expenseAmount
+      };
+      addExpense(expense);
+      clearInput();
+      return;
+    }
 
     const expense = {
       text: expenseText,
       amount: expenseAmount,
-      id: editingExpense ? editingExpense.id : new Date().getTime(), // Use existing ID for update
+      id: expenseToUpdate.id
     };
-    addExpense(expense);
+
+    const result = updateExpense(expense);
+    if (!result) return;
     clearInput();
+    resetExpenseToUpdate();
   };
 
   const clearInput = () => {
@@ -39,7 +52,7 @@ const ExpenseForm = ({ addExpense, editingExpense }) => {
 
   return (
     <form className={styles.form} onSubmit={onSubmitHandler}>
-      <h3>{editingExpense ? "Edit Transaction" : "Add new transaction"}</h3>
+      <h3>{expenseToUpdate ? "Edit " : "Add new "}transaction</h3>
       <label htmlFor="expenseText">Text</label>
       <input
         id="expenseText"
@@ -51,7 +64,7 @@ const ExpenseForm = ({ addExpense, editingExpense }) => {
       />
       <div>
         <label htmlFor="expenseAmount">Amount</label>
-        <div>(negative - expense, positive - income)</div>
+        <div>(negative - expense,positive-income)</div>
       </div>
       <input
         className={styles.input}
@@ -62,7 +75,7 @@ const ExpenseForm = ({ addExpense, editingExpense }) => {
         required
       />
       <button className={styles.submitBtn}>
-        {editingExpense ? "Edit Transaction" : "Add Transaction"}
+        {expenseToUpdate ? "Edit " : "Add "} Transaction
       </button>
     </form>
   );
